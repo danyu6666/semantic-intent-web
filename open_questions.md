@@ -17,10 +17,12 @@ model sizes, and architectures? Is there a universal φ_c?
 SIW assumes access to internal feature activations. What proxy signals
 (output distributions, latency, confidence scores) work for closed models?
 
-**OQ-4: Adversarial Topology**  
-Can a θ₂ adversary deliberately shape their semantic footprint to maintain
-cluster density below the anomaly threshold while achieving attack goals?
-What is the cost of this evasion strategy?
+**OQ-4: Adversarial Topology** *(Addressed — see `adversary.md`)*  
+Fragmentation analysis complete: attacks with semantic interaction complexity
+I(G) > 0 require at least one cross-cluster composition session (detectable).
+Attacks with I(G) = 0 evade SIW (honest boundary). Remaining: empirical
+quantification of I(G) for real attack categories, and precise detection
+probability for cross-cluster bridges.
 
 **OQ-5: Privacy-Utility Curve**  
 Quantify the exact relationship between ε_p and detection rate for the
@@ -28,9 +30,10 @@ two-level architecture. Where is the practical operating point?
 
 ## Theoretical
 
-**OQ-6: Lemma Formalization**  
-The three lemmas (minimax, DP composition, decentralization) are stated
-as sketches. Full formal proofs are needed, particularly Lemma 2 (SMPC case).
+**OQ-6: Lemma Formalization** *(Addressed — see `proofs.md`)*  
+Formal proofs completed for all three lemmas including Lemma 2c (SMPC case).
+Remaining refinement: Lemma 3 communication lower bound for intermediate
+topology specifically (current proof uses general graph bound).
 
 **OQ-7: Multi-modal Extension**  
 SIW is defined for text features. How does the framework extend to

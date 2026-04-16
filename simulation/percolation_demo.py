@@ -244,10 +244,11 @@ ax4.legend(fontsize=8)
 ax4.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/Users/mareen2018/Desktop/SIW/simulation_results.png', 
-            dpi=150, bbox_inches='tight')
+import os
+output_path = os.path.join(os.path.dirname(__file__), 'simulation_results.png')
+plt.savefig(output_path, dpi=150, bbox_inches='tight')
 print(f"\n=== PLOT SAVED ===")
-print(f"File: /Users/mareen2018/Desktop/SIW/simulation_results.png")
+print(f"File: {output_path}")
 
 # Summary
 print(f"\n=== FRAMEWORK VERDICT ===")

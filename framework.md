@@ -1,9 +1,9 @@
-# Semantic Intent Web (SIW): Framework v0.3
+# Semantic Intent Web (SIW): Framework v0.4
 ### Semantic Percolation Theory for Cross-Session LLM Safety
 
-> **Status:** Pre-print concept release. Simulation-validated.  
-> **Date:** 2026-04-08  
-> **Next:** Full paper with formal proofs and extended experiments.
+> **Status:** Pre-print with formal proofs and adversary analysis.  
+> **Date:** 2026-04-15  
+> **Next:** Full paper with related work and extended experiments.
 
 ---
 
@@ -68,7 +68,7 @@ Crystallized_global(G(t)) ⟺ |C_max(t)| / |V(t)| ≥ φ_c
 
 Where C_max(t) is the largest connected component.
 
-**Definition (Local Crystallization) [NEW — from simulation]:**
+**Definition (Local Crystallization):**
 
 ```
 Crystallized_local(G(t), k) ⟺ ρ_k(t) / ρ_baseline > δ_k
@@ -113,7 +113,7 @@ This intermediate topology is a finding, not a limitation. It justifies a
 
 ---
 
-## 4. Two-Level Detection Architecture [NEW]
+## 4. Two-Level Detection Architecture
 
 The simulation reveals that global and local crystallization carry different
 information at different costs.
@@ -166,11 +166,10 @@ failure collapses detection capability (formalized as ρ(M) ≤ ρ* < 1).
 > No mechanism M simultaneously satisfies E, P (with ε_p → 0), and D
 > against a type θ₂ adversary.
 
-*Proof sketch:*
-- By minimax argument: any E-satisfying mechanism must use cross-session history (Lemma 1)
-- By DP composition: cross-session history sufficient for detection violates (ε_p,δ_p)-DP as ε_p → 0 (Lemma 2)  
-- By decentralization definition: computing global percolation threshold requires
-  centralized graph state (Lemma 3)
+*Proof sketch (full proofs in `proofs.md`):*
+- By data processing inequality: any E-satisfying mechanism must use cross-session history (Lemma 1)
+- By sharp threshold sensitivity at p_c + DP definition: detection requires ε_p ≥ ln((1-ε-δ_p)/α) > 0 (Lemma 2b). SMPC does not reduce this bound — it protects computation, not output (Lemma 2c).
+- By distributed computation lower bounds: computing |C_max|/|V| requires centralized aggregation (Lemma 3)
 - Therefore E ∧ P ∧ D is infeasible. □
 
 ### 5.3 Refined Trilemma (Two-Level)
@@ -243,9 +242,59 @@ Absence of any condition makes SIW a surveillance tool. This is the red line.
 
 ---
 
-## 7. Open Questions
+## 7. SIW Hypothesis and Three-Layer Theory
 
-For the research community:
+### 7.1 The SIW Hypothesis
+
+> Intent emerges as a detectable structural transition in semantic
+> interaction networks.
+
+This is a falsifiable scientific claim: intent is not a property of
+individual prompts but a network phenomenon observable through graph structure.
+
+### 7.2 Three-Layer Theory
+
+SIW organizes into three layers of analysis:
+
+**Layer 1 — Semantic Interaction Dynamics:**
+How interactions generate semantic structures. Each session activates
+features and creates co-activation edges. This layer studies the
+network formation process itself.
+
+**Layer 2 — Structural Emergence:**
+When and how structure appears. This layer studies cluster densification,
+cross-cluster bridge formation, and the phase transition from sub-critical
+to super-critical graph states. The two-level detection architecture (§4)
+operates at this layer.
+
+**Layer 3 — Intent Inference:**
+What structural signals reveal about intent. This layer connects
+graph-theoretic observations to safety decisions. The trilemma (§5)
+and adversary model (`adversary.md`) constrain what is achievable here.
+
+### 7.3 Research Questions
+
+| ID | Question | Status |
+|----|----------|--------|
+| RQ1 | Do semantic interaction networks exhibit structural transitions corresponding to intent formation? | Confirmed in simulation; early embedding validation in `experiments/` |
+| RQ2 | Can local cluster densification serve as an early signal? | Confirmed in simulation (t_local ≈ 0.4 × t_global) |
+| RQ3 | Do malicious interactions produce denser semantic clusters? | Confirmed in simulation (+69% density) |
+| RQ4 | Do cross-domain tasks produce detectable cross-cluster bridges? | Theoretically bounded (`adversary.md` composition theorem) |
+| RQ5 | Which feature representations best reveal crystallization? | Open — early experiments with sentence-transformers and Ollama |
+
+### 7.4 Research Perspectives
+
+SIW connects three communities:
+
+- **AI Safety:** Can distributed attacks be detected via interaction structure?
+- **AI Interpretability:** Do LLM feature activations form meaningful semantic graphs?
+- **Network Science:** What graph dynamics govern intent crystallization?
+
+---
+
+## 8. Open Questions
+
+For the research community (see also `open_questions.md` for full list):
 
 1. **Topology model:** What random graph model best characterizes semantic
    co-activation? The intermediate topology found here requires a new model.
@@ -253,8 +302,10 @@ For the research community:
 2. **φ_c calibration:** How does the crystallization threshold vary across
    domains, languages, and model architectures?
 
-3. **Adversarial topology:** Can a sophisticated attacker (θ₂) reshape their
-   semantic footprint to avoid cluster density anomalies?
+3. **Adversarial topology:** *(Addressed — see `adversary.md`)*
+   Fragmentation analysis shows composition-dependent attacks (I(G|A) > 0)
+   require detectable cross-cluster sessions. Detection signal scales
+   continuously with I(G|A). Remaining: empirical calibration.
 
 4. **Feature space access:** SIW assumes access to internal feature activations.
    What proxy signals work for black-box models?
@@ -264,20 +315,33 @@ For the research community:
 
 ---
 
-## 8. Simulation
+## 9. Simulation and Experiments
 
-Code available in `/simulation/percolation_demo.py`.
+### 9.1 Synthetic simulation
+
+Code available in `simulation/percolation_demo.py`.
 
 **Reproducing key results:**
 
-```python
-python3 simulation.py
+```bash
+python3 simulation/percolation_demo.py
 # Outputs:
 # - Phase transition at p_c = 0.002196 (ER prediction: 0.002000)
 # - Degree distribution: intermediate topology (R²=0.812, KS p≈0)
 # - Attack cluster density: 37.0 vs benign 21.9 (69% difference)
 # - Crystallization threshold φ_c = 0.242
 ```
+
+### 9.2 Early validation (real embeddings)
+
+Experiments in `experiments/` test the SIW hypothesis using real LLM embeddings:
+
+- `experiments/run_test.py` — basic percolation validation (random features, 500 nodes)
+- `experiments/run_semantic_graph.py` — sentence-transformer (`all-MiniLM-L6-v2`) embedding graph
+- `experiments/run_ollama_graph.py` — Ollama/Mistral embedding graph
+
+Both real-embedding experiments confirm phase transition behavior on
+semantic co-activation graphs, supporting RQ1.
 
 ---
 
@@ -287,11 +351,11 @@ If you build on this framework:
 
 ```
 @misc{siw2026,
-  title  = {Semantic Intent Web: A Percolation Framework for 
+  title   = {Semantic Intent Web: A Percolation Framework for
              Cross-Session LLM Safety},
-  year   = {2026},
-  note   = {Pre-print concept release. GitHub: [URL]. 
-             Full paper in preparation.}
+  year    = {2026},
+  note    = {Concept preprint. Full paper in preparation.},
+  contact = {aa.prime.studio@gmail.com}
 }
 ```
 
@@ -300,9 +364,9 @@ If you build on this framework:
 ## Contributing
 
 This is an open framework. We welcome:
-- Formal proofs of the lemmas
-- Alternative topology models
+- Alternative topology models for semantic co-activation
 - Empirical validation on real LLM interaction data
+- Empirical calibration of I(G|A) for specific attack categories
 - Extensions to multi-modal systems
 
 Open an issue or pull request.

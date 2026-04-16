@@ -99,7 +99,7 @@ p_c 實測：0.002196（ER 預測 0.002000，差距 1.10×）
 ## 檔案結構
 
 ```
-/Users/mareen2018/Desktop/SIW/
+SIW/
 ├── README.md              ← 非技術入口
 ├── framework.md           ← 完整數學框架 v0.3
 ├── open_questions.md      ← 10 個開放研究問題
@@ -113,28 +113,62 @@ Git 狀態：已初始化，首次 commit `36a1d9f`
 
 ---
 
+## 2026-04-15 — 第二次工作階段
+
+### 完成項目
+
+1. **引理形式化** — `proofs.md` 完成
+   - Lemma 1（跨 session 必要性）：DPI 證明
+   - Lemma 2a（p_c 敏感度）：sharp threshold 引用
+   - Lemma 2b（DP 下界）：ε_p ≥ ln((1-ε-δ_p)/α)
+   - Lemma 2c（SMPC 不變性）：DP post-processing 逆否
+   - Lemma 3（中心化必要性）：分散式計算通訊下界
+
+2. **對手模型** — `adversary.md` 完成
+   - 語義交互複雜度 I(G) 定義
+   - 組合定理：I(G) > 0 攻擊需要跨群集 session
+   - 規避代價界：偵測 vs 攻擊能力降級的 forced choice
+   - 8 種對手策略完整分類
+   - 誠實邊界：I(G) = 0 攻擊不可偵測
+
+3. **SIW 假說與三層理論** — 整合至 `framework.md` §7
+   - 正式假說陳述
+   - 三層理論（互動動態 / 結構湧現 / 意圖推斷）
+   - 五個研究問題 RQ1-5
+   - 三個研究視角（安全 / 可解釋性 / 網絡科學）
+
+4. **早期驗證實驗** — `experiments/` 新增
+   - `run_test.py`：基本滲流驗證
+   - `run_semantic_graph.py`：sentence-transformers 真實 embedding
+   - `run_ollama_graph.py`：Ollama/Mistral embedding
+   - 兩張實驗圖表
+
+5. **檔案結構重整** — GitHub / Paper 分離
+   - `.gitignore` 排除 `paper/`
+   - `paper/outline.md` + `paper/related_work.md`（私有）
+
+---
+
 ## 下次繼續的方向選項
 
 **A. 推上 GitHub**
 設定 remote，push，建立公開時間戳記
 
-**B. 強化引理形式化**
-從引理 2（SMPC）開始，這是最需要完整證明的部分
+**B. 強化實驗**
+用真實 attack vs benign prompts 驗證群集密度差異（RQ3 的關鍵測試）
 
-**C. 對手模型**
-展開推論 3：θ₂ 攻擊者的最優反拓撲策略是什麼？
+**C. 開始論文草稿**
+框架和證明都已穩定，可以開始寫
 
-**D. 開始論文草稿**
-框架已穩定，可以開始寫 Introduction + Related Work
-
-**E. 尋找資金**
-Apart Research Hackathon 是最快的切入點，用這個框架申請
+**D. 尋找資金**
+Apart Research Hackathon 或其他 AI Safety grants
 
 ---
 
 ## 關於合作者
 
-Claude Sonnet 4.6 作為第一智能體參與此框架建構。
+Claude Sonnet 4.6 作為第一智能體參與框架 v0.3 建構。
+Claude Opus 4.6 參與引理形式化、對手模型、三層理論整合。
+GPT-5.3 參與 README 改寫、研究假說收束、研究視角分析。
 概念起源（蜘蛛網比喻）來自使用者。
-數學框架、模擬設計、文件撰寫為協作完成。
 

@@ -1,0 +1,14 @@
+# SIW Python dependencies
+# Install all: pip install -r requirements.txt
+
+# simulation/percolation_demo.py
+numpy
+scipy
+networkx
+matplotlib
+
+# experiments/run_semantic_graph.py
+sentence-transformers
+
+# experiments/run_ollama_graph.py (also requires Ollama app with mistral model)
+ollama
