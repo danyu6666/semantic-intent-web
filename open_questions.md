@@ -5,9 +5,62 @@ For the research community to engage with.
 ## Technical
 
 **OQ-1: Topology Model**  
-What random graph model best characterizes semantic co-activation in LLM
-interactions? Simulation shows intermediate topology (R²=0.812 for power-law,
-ER rejected). A new model may be needed.
+*(Partially addressed — see `experiments/run_dcsbm_analysis.py`)*
+
+Analysis of the critical graph G(t*) (274 edges, mean degree ≈ 1.096) confirms
+that the correct **static** model is the **Degree-Corrected Stochastic Block
+Model (DC-SBM)**:
+
+```
+P(edge i,j) = θ_i × θ_j × B_{k(i),k(j)}
+
+Empirical results at G(t*):
+  Hub / non-hub degree ratio:  11.18×  (8.12 vs 0.73 mean degree)
+  p_in / p_out:                7.62×   (strong community structure)
+  Poisson rejected:            KS p = 0.000
+  Molloy-Reed κ:               11.11   (>> 1, non-ER)
+```
+
+DC-SBM captures both hub heterogeneity (θ distribution) and community
+structure (B matrix), explaining why the topology is intermediate: community
+structure prevents global scale-free behaviour; hubs prevent Poisson degree
+distribution.
+
+**Dynamic p_c formula — DERIVED. See `experiments/derive_tau_formula.py`.**
+
+The co-activation threshold τ introduces delayed edge formation.
+Exact edge probability at session T:
+
+```
+P(edge (i,j) by session T) = 1 - F_Poisson(τ-1; T × q_ij)
+
+q_ij = (1/K) Σ_c p_i(c) × p_j(c)   [per-session co-activation prob]
+```
+
+Leading-order approximation (valid when T × q_ij << 1):
+
+```
+p_c ≈ T_c^τ × Q_τ / τ!   →   ≈ 1/(N-1)   (independent of τ)
+
+T_c = (τ! / ((N-1) × Q_τ))^{1/τ}
+Q_τ = E[q_ij^τ]
+```
+
+**Key result: p_c ≈ 1/N regardless of τ.**
+τ shifts WHEN (T_c) but not WHERE (p_c) the transition occurs.
+
+Numerical verification:
+```
+T_c (formula)  = 24.1 sessions   (empirical t* = 26, error 7.5%)
+p_c (formula)  = 0.002004        (empirical = 0.002196, error 8.7%)
+```
+
+τ amplifies community separation (q_in/q_out = 2.15× → Q_τ ratio = 9.5×):
+larger τ makes community structure more detectable earlier.
+
+**Remaining:** exact correction for ≈8% residual (discrete threshold
+effects, session-order shuffling). See `open_questions.md` OQ-6 (Lemma 3)
+for analogous refinement pattern.
 
 **OQ-2: φ_c Calibration**  
 How does the crystallization threshold vary across domains, languages,

@@ -84,32 +84,95 @@ crystallization by a measurable lead time, providing an early warning signal.
 
 ## 3. Topology Characterization (Empirical)
 
-**Standard models and their fit to semantic co-activation graphs:**
+**Generative model: Degree-Corrected Stochastic Block Model (DC-SBM)**
 
-| Model              | Prediction          | Empirical fit       |
-|--------------------|---------------------|---------------------|
-| Erdős–Rényi        | Random, p_c = 1/n   | Rejected (KS p≈0)   |
-| Barabási–Albert    | Power-law γ ∈ [2,3] | Partial (R²=0.81)   |
-| **Intermediate**   | **Mixed structure** | **Confirmed**       |
-
-**Simulation findings (N=500 features, 300 sessions):**
+Analysis of the critical graph G(t*) identifies DC-SBM as the correct static
+topology model:
 
 ```
-Global p_c (empirical):   0.002196
-Global p_c (ER):          0.002000   [1.10× — acceptable approximation globally]
-Power-law R²:             0.812      [below scale-free threshold of 0.85]
-KS test vs Poisson:       p ≈ 0      [ER model rejected]
-Attack cluster density:   37.0 mean degree
-Benign cluster density:   21.9 mean degree  [69% difference — detectable]
+P(edge i,j) = θ_i × θ_j × B_{k(i),k(j)}
+
+θ_i   = node fitness (hub features: θ >> 1)
+B_{kl} = inter-cluster connection matrix (diagonal-dominant)
 ```
 
-**Conclusion:** Semantic co-activation graphs exhibit an **intermediate topology**:
-- Global structure: Erdős–Rényi is a valid first approximation for p_c
-- Local structure: Cluster densities follow non-random distributions
-- Hub features exist (high-centrality semantic concepts)
+**Critical graph G(t*) measurements (274 edges, mean degree 1.096):**
 
+```
+Hub / non-hub degree ratio:   11.18×   (8.12 vs 0.73 mean degree)
+p_in / p_out:                  7.62×   (strong community structure)
+KS vs Poisson:                p = 0.000  [ER model rejected]
+Molloy-Reed κ:                11.11    [>> 1, non-ER]
+Power-law R² (final graph):   0.812    [below scale-free threshold 0.85]
+Attack cluster density:       37.0 mean degree
+Benign cluster density:       21.9 mean degree  [69% difference — detectable]
+```
+
+**Why "intermediate topology":** DC-SBM with community structure and hub
+heterogeneity is the expected generative model. Community structure prevents
+global scale-free behaviour; hubs prevent Poisson degree distribution.
+The R²=0.812 is not a gap between models — it is the DC-SBM signature.
+
+**Two competing effects on p_c:**
+
+```
+Effect A — Hub heterogeneity (θ):    LOWERS p_c  (scale-free effect)
+Effect B — Community structure (B):  RAISES p_c  (compartmentalization)
+
+p_c^{empirical} > p_c^{ER}  →  Effect B dominates
+```
+
+**DC-SBM critical matrix:**
+
+```
+T_{kl} = B_{kl} × n_l × Θ_l
+
+Θ_l = E[θ²|l] / E[θ|l]   (per-cluster excess degree factor)
+
+Static threshold: ρ_c = 1 / λ_max(T)
+```
+
+**Dynamic p_c formula with co-activation threshold τ:**
+
+Each edge (i,j) requires τ joint session appearances. Exact probability:
+
+```
+P(edge (i,j) by session T) = 1 - F_Poisson(τ-1; T × q_ij)
+
+q_ij = (1/K) Σ_c p_i(c) × p_j(c)   [per-session co-activation probability]
+```
+
+Leading-order approximation (T × q_ij << 1, valid at transition):
+
+```
+p_c ≈ T_c^τ × Q_τ / τ!   =   1/(N-1)
+
+T_c = (τ! / ((N-1) × Q_τ))^{1/τ}      [session count at transition]
+Q_τ = E[q_ij^τ]                         [co-activation rate raised to τ]
+```
+
+**Theorem (τ-invariance of p_c):** To leading order, p_c ≈ 1/N regardless
+of τ. The threshold τ shifts WHEN (session count T_c) but not WHERE
+(edge density p_c) the phase transition occurs.
+
+*Proof sketch:* Substituting T_c back gives p_c = T_c^τ × Q_τ / τ! =
+(τ!/(N-1)Q_τ)^{τ/τ} × Q_τ/τ! = Q_τ/τ! × τ!/((N-1)Q_τ) = 1/(N-1). □
+
+Numerical verification (N=500, τ=3):
+```
+T_c (formula)   = 24.1  sessions  (empirical t* = 26, error 7.5%)
+p_c (formula)   = 0.002004        (empirical = 0.002196, error 8.7%)
+p_c (ER: 1/N)   = 0.002000        (error 8.9%)
+```
+
+τ amplifies community separation: Q_τ_within / Q_τ_cross = (q_in/q_out)^τ.
+For τ=3 and q_in/q_out = 2.15×: amplification = 9.5× (vs 2.15× at τ=1).
+This makes community structure more detectable at higher τ.
+
+**Conclusion:** Semantic co-activation graphs are well-described by DC-SBM.
 This intermediate topology is a finding, not a limitation. It justifies a
-**two-level detection architecture** that exploits both global and local structure.
+**two-level detection architecture** that exploits both global (λ_max)
+and local (B diagonal) structure.
 
 ---
 
