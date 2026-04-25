@@ -87,10 +87,31 @@ p_c CV = 0.56  (more variable than φ_c — NOT a universal threshold)
 threshold metric for deployment. Science domains crystallize slowest
 (highest φ_c); focused/repetitive domains (Fitness) crystallize fastest.
 
-**Remaining:**
-- Cross-language calibration (non-English prompts)
-- Cross-model-size calibration (different encoder capacity)
-- Calibration with real LLM internal feature activations (not embedding proxies)
+**Cross-architecture calibration (Ollama mistral 4096-dim, K=160, equal density):**
+
+```
+Model              φ_c (Cooking)  φ_c (Programming)  φ_c (Science)
+sentence-transformer   0.177          0.169              0.148
+Ollama mistral         0.039          0.071              0.050
+Cross-arch diff:      77.9%          58.3%             66.4%   mean=67.6%
+```
+
+Mistral crystallises at T_c=1–5 with very low φ_c: a few dominant embedding
+dimensions activate for all prompts, producing rapid but shallow crystallisation.
+Domain ordering is NOT preserved across models.
+
+**Complete OQ-2 answer:**
+```
+φ_c depends on:        calibration needed?
+  Domain          ✅  YES (CV=0.47, range 0.039–0.219)
+  Architecture    ✅  YES (67.6% gap, ST vs mistral)
+  Language        —   Not tested
+```
+
+φ_c is neither domain-universal nor architecture-universal.
+Per-deployment calibration is mandatory.
+
+**Remaining:** Cross-language calibration.
 
 **OQ-3: Black-box Feature Proxy**  
 *(Partially addressed — see `experiments/run_oq3_proxy_signals.py`)*
@@ -120,9 +141,29 @@ Required access: A & B need embedding; C needs nothing.
 more structured one (A) for attack detection when attack and benign domains
 share high-magnitude embedding features.
 
-**Remaining open sub-question:**
-Output-text proxy (true black-box): embed the model's RESPONSES rather
-than inputs. Not yet tested — requires LLM-generated text corpus.
+**True black-box test (Ollama mistral, 80 sessions, τ=2):**
+
+```
+Strategy D: response embedding (only LLM output observed)
+  φ_c = 0.169  T_c = 17  attack ratio = 1.34×  (weak)
+
+vs Strategy A: input embedding (reference)
+  φ_c = 0.120  T_c = 11  attack ratio = 1.14×  (weak)
+
+Key finding: attack response cosine clustering ratio = 4.50×
+  (within-attack sim 0.402 vs attack-vs-benign 0.089)
+```
+
+**Critical insight:** Response text carries strong attack signal in continuous
+embedding space (4.50× clustering) but this degrades to 1.34× in the SIW
+graph because top-K discretisation + threshold construction loses information.
+
+Implication: for response-only proxy, direct cosine clustering of response
+embeddings may outperform SIW graph-based detection. The graph approach
+requires more sessions (>200) or lower τ to reliably recover the signal.
+
+**Remaining:** Quantify the exact threshold (min sessions, max τ) at which
+response-embedding SIW detection becomes reliable (>1.5× density ratio).
 
 **OQ-4: Adversarial Topology** *(Addressed — see `adversary.md`)*  
 Fragmentation analysis complete: attacks with semantic interaction complexity
