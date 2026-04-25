@@ -63,12 +63,66 @@ effects, session-order shuffling). See `open_questions.md` OQ-6 (Lemma 3)
 for analogous refinement pattern.
 
 **OQ-2: φ_c Calibration**  
-How does the crystallization threshold vary across domains, languages,
-model sizes, and architectures? Is there a universal φ_c?
+*(Partially addressed — see `experiments/run_oq2_phi_calibration.py`)*
+
+Experiment: sentence-transformer (all-MiniLM-L6-v2), 5 domains × 120 sessions,
+COACT_THRESHOLD = 3, top-15 embedding dimensions as features.
+
+```
+Domain       φ_c    T_c  p_c
+Cooking      0.154   21  0.00577
+Programming  0.141   18  0.00567
+Fitness      0.039    9  0.00144
+Science      0.219   32  0.00858
+Chemistry    0.094   16  0.00205
+Global mix   0.083   34  0.00318
+Synthetic    0.242   26  0.00220
+
+φ_c CV = 0.47  (domain-dependent — calibration required)
+p_c CV = 0.56  (more variable than φ_c — NOT a universal threshold)
+```
+
+**Key finding:** φ_c is domain-dependent (CV=0.47). No universal φ_c exists.
+φ_c is more stable across domains than p_c, making it the better
+threshold metric for deployment. Science domains crystallize slowest
+(highest φ_c); focused/repetitive domains (Fitness) crystallize fastest.
+
+**Remaining:**
+- Cross-language calibration (non-English prompts)
+- Cross-model-size calibration (different encoder capacity)
+- Calibration with real LLM internal feature activations (not embedding proxies)
 
 **OQ-3: Black-box Feature Proxy**  
-SIW assumes access to internal feature activations. What proxy signals
-(output distributions, latency, confidence scores) work for closed models?
+*(Partially addressed — see `experiments/run_oq3_proxy_signals.py`)*
+
+Three proxy strategies tested (Science domain, 150 sessions, 30 attack):
+
+```
+Strategy              φ_c   T_c  Attack ratio  Detectable
+A: Top-K activation  0.089   25     1.38×        weak
+B: Random projection 0.115   26     1.83×        YES
+C: Random baseline   0.065  128     0.00×        NO
+
+Required access: A & B need embedding; C needs nothing.
+```
+
+**Key findings:**
+1. Phase transition is detectable with external embeddings (A & B).
+2. Strategy B (random projection of embedding) gives HIGHER attack density
+   ratio than A (top-K), because top-K hits shared technical vocabulary
+   in both attack and benign domains. Projection choice matters.
+3. Strategy C (no embeddings) produces a transition but zero attack signal,
+   proving the semantic structure — not the graph construction — drives detection.
+4. T_c is consistent between A and B (25 vs 26 sessions) — proxy does not
+   significantly delay detection timing.
+
+**Counterintuitive result:** a less informed proxy (B) can outperform a
+more structured one (A) for attack detection when attack and benign domains
+share high-magnitude embedding features.
+
+**Remaining open sub-question:**
+Output-text proxy (true black-box): embed the model's RESPONSES rather
+than inputs. Not yet tested — requires LLM-generated text corpus.
 
 **OQ-4: Adversarial Topology** *(Addressed — see `adversary.md`)*  
 Fragmentation analysis complete: attacks with semantic interaction complexity
