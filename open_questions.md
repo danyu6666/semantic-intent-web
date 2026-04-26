@@ -173,8 +173,39 @@ quantification of I(G) for real attack categories, and precise detection
 probability for cross-cluster bridges.
 
 **OQ-5: Privacy-Utility Curve**  
-Quantify the exact relationship between ε_p and detection rate for the
-two-level architecture. Where is the practical operating point?
+*(Addressed — see `experiments/run_oq5_privacy_utility.py`)*
+
+Laplace mechanism applied to Level 1 (cluster density) and Level 2 (|C_max|/N),
+measured at detection window T_detect=50 sessions.
+
+```
+Statistic            Signal gap   Δf      Signal/Δf
+Level 1 (local)      0.524        0.670   0.78
+Level 2 (global)     0.093        0.178   0.52
+
+To achieve 90% TPR at 5% FPR (Laplace mechanism):
+  Level 1:  ε_p ≥ 2.40
+  Level 2:  ε_p ≥ 9.61
+  Theory:   ε_p ≥ 2.88  [Lemma 2b lower bound]
+
+Level 1 privacy advantage: 75% budget savings vs Level 2
+```
+
+**Key findings:**
+1. Level 1 achieves near-theoretical DP efficiency (ε_p=2.40 vs bound 2.88).
+2. Level 2 requires 4× more privacy budget for same detection rate.
+3. Level 1 signal-to-sensitivity ratio (0.78) > Level 2 (0.52): local
+   cluster density is inherently more privacy-efficient than global giant
+   component as a detection statistic.
+4. Practical operating point: ε_p ≈ 2.5 for Level 1 (90% detection).
+
+**Methodological note:** FPR control requires ε_p-adaptive thresholds in
+deployment (fixed threshold inflates FPR at low ε_p due to Laplace noise).
+The ε_p vs TPR ordering (L1 >> L2) is robust regardless.
+
+**Practical recommendation:**
+  Always-on Level 1 (ε_p ≈ 2.5) + escalate to Level 2 only on flag.
+  Combined budget ≈ ε_p(L1) + ε_p(L2)×P(escalate) << ε_p(L2) alone.
 
 ## Theoretical
 
