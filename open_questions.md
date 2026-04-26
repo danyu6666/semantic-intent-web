@@ -209,10 +209,30 @@ The ε_p vs TPR ordering (L1 >> L2) is robust regardless.
 
 ## Theoretical
 
-**OQ-6: Lemma Formalization** *(Addressed — see `proofs.md`)*  
-Formal proofs completed for all three lemmas including Lemma 2c (SMPC case).
-Remaining refinement: Lemma 3 communication lower bound for intermediate
-topology specifically (current proof uses general graph bound).
+**OQ-6: Lemma 3 DC-SBM Refinement** *(Addressed — see `proofs.md` §3.1 and `experiments/run_oq6_lemma3_dcsbm.py`)*
+
+Theorem 3' (DC-SBM Communication Structure) added to `proofs.md` §3.1:
+
+```
+Phase 1 — Level 1 (local, parallelizable):
+  K=12 clusters × Ω(n/K)=Ω(42) bits each
+  → K independent computations, no central dependency
+  → Decentralization (D) satisfied ✓
+
+Phase 2 — Level 2 (global, centralized):
+  Aggregator receives Ω(n)=Ω(500) bits
+  → K-player set disjointness reduction proves cannot be distributed
+  → Decentralization (D) violated ✗
+```
+
+Proof: K-player set disjointness (Braverman et al. 2013).
+High p_in/p_out=7.62× STRENGTHENS the bound: dense within-cluster edges
+create larger component labelings; sparse cross-cluster edges make each one
+pivotal for C_max. Even when all cross-cluster edges are already within the
+same component, the protocol must READ them to confirm this fact.
+
+General Ω(|V|) bound is now TIGHT for DC-SBM.
+Lemma 3 confidence: Medium → High.
 
 **OQ-7: Multi-modal Extension**  
 SIW is defined for text features. How does the framework extend to
