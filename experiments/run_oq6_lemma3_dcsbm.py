@@ -207,46 +207,53 @@ ax.set_title('3-Tier Communication Hierarchy\n(Theorem 3\' Structure)')
 
 # Tier 0: individual nodes (sample)
 for i, x in enumerate(np.linspace(0, 4, 6)):
-    c = ax.add_patch(plt.Circle((x, 0), 0.15, color='lightblue', ec='black', zorder=5))
+    c = ax.add_patch(plt.Circle((x, 0), 0.15, color='lightblue', ec='none', zorder=5))
 ax.text(2, -0.5, f'Tier 0: Individual Nodes\n(n={N_FEATURES} nodes hold local edges)',
         ha='center', fontsize=8)
 
 # Tier 1: cluster reps
 for i, x in enumerate(np.linspace(0.5, 3.5, 4)):
-    ax.add_patch(plt.Circle((x, 1.5), 0.2, color='steelblue', ec='black', zorder=5))
+    ax.add_patch(plt.Circle((x, 1.5), 0.2, color='steelblue', ec='none', zorder=5))
     ax.text(x, 1.5, f'C{i}', ha='center', va='center', fontsize=7, color='white', fontweight='bold')
     # Arrows from nodes to cluster reps
     for j, nx_ in enumerate(np.linspace(0, 4, 6)):
         if j % 4 == i % 4:
             ax.annotate('', xy=(x, 1.3), xytext=(nx_, 0.15),
                         arrowprops=dict(arrowstyle='->', color='steelblue', lw=1))
-ax.text(2, 0.9, f'Ω(n/K)={N_FEATURES//N_CLUSTERS} bits/cluster', ha='center', fontsize=8)
-ax.text(2, 1.1, '← parallelizable →', ha='center', fontsize=8, color='steelblue')
-ax.text(-0.5, 1.5, f'Tier 1:\nK={N_CLUSTERS}\nCluster\nReps', ha='center', fontsize=8)
+# Bit count — positioned to the LEFT of the diagram, outside arrow path
+ax.text(-0.85, 0.75, f'Ω(n/K) =\n{N_FEATURES//N_CLUSTERS} bits\nper cluster', ha='center', fontsize=8,
+        color='steelblue', va='center',
+        bbox=dict(boxstyle='round,pad=0.2', facecolor='#EAF2FB', ec='steelblue', alpha=0.85))
+ax.text(-0.5, 1.5, f'Tier 1:\nK={N_CLUSTERS}\nCluster Reps\n(parallel)', ha='center', fontsize=8)
 
 # Tier 2: global aggregator
-ax.add_patch(plt.Circle((2, 3), 0.3, color='crimson', ec='black', zorder=5))
+ax.add_patch(plt.Circle((2, 3), 0.3, color='crimson', ec='none', zorder=5))
 ax.text(2, 3, 'AGG', ha='center', va='center', fontsize=8, color='white', fontweight='bold')
 for x in np.linspace(0.5, 3.5, 4):
     ax.annotate('', xy=(2, 2.7), xytext=(x, 1.7),
                 arrowprops=dict(arrowstyle='->', color='crimson', lw=1.5))
-ax.text(2, 2.3, f'Ω(n)={N_FEATURES} bits\n(centralized)', ha='center', fontsize=8, color='crimson')
-ax.text(-0.5, 3, 'Tier 2:\nGlobal\nAggregator\n(SPOF)', ha='center', fontsize=8, color='crimson')
+# Bit count — positioned to the LEFT, clear of aggregator circle and arrows
+ax.text(-0.85, 2.8, f'Ω(n) = {N_FEATURES}\nbits total\n(centralized)', ha='center', fontsize=8,
+        color='crimson', va='center',
+        bbox=dict(boxstyle='round,pad=0.2', facecolor='#FDECEA', ec='crimson', alpha=0.85))
+ax.text(2.5, 3, 'Tier 2:\nAggregator\n(SPOF)', ha='center', fontsize=7.5, color='crimson')
 
-# Boxes showing level 1 vs level 2
-ax.add_patch(mpatches.FancyBboxPatch((-0.8, -0.7), 5.6, 2.7,
+# Level 1/2 boxes — labels at BOTTOM-RIGHT corner, inside each box, non-overlapping
+ax.add_patch(mpatches.FancyBboxPatch((-0.2, -0.65), 4.3, 2.55,
              boxstyle='round,pad=0.1', fill=False, ec='steelblue', lw=2, ls='--'))
-ax.text(4.5, 0.6, 'Level 1\n(D=✓)', ha='center', fontsize=8, color='steelblue')
-ax.add_patch(mpatches.FancyBboxPatch((-0.8, 2.5), 5.6, 1.0,
+ax.text(3.8, -0.42, 'Level 1  D=✓', ha='right', fontsize=8.5,
+        color='steelblue', fontweight='bold')
+ax.add_patch(mpatches.FancyBboxPatch((-0.2, 2.52), 4.3, 0.95,
              boxstyle='round,pad=0.1', fill=False, ec='crimson', lw=2, ls='--'))
-ax.text(4.5, 3, 'Level 2\n(D=✗)', ha='center', fontsize=8, color='crimson')
+ax.text(3.8, 3.30, 'Level 2  D=✗', ha='right', fontsize=8.5,
+        color='crimson', fontweight='bold')
 
 # ── Plot 2: Bits required per level ──
 ax = axes[1]
 categories = ['Local\n(per cluster)', 'Cross-cluster\nedges', 'Aggregator\ntotal']
 values     = [N_FEATURES//N_CLUSTERS, bits_cross_edges, bits_aggregator]
 colors_    = ['steelblue', 'orange', 'crimson']
-bars = ax.bar(categories, values, color=colors_, alpha=0.8, edgecolor='black')
+bars = ax.bar(categories, values, color=colors_, alpha=0.8, edgecolor='none')
 ax.axhline(N_FEATURES, color='black', ls='--', lw=1.5,
            label=f'Ω(n)={N_FEATURES} (general bound)')
 for bar, v in zip(bars, values):

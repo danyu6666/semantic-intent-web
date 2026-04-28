@@ -274,23 +274,23 @@ fig.suptitle('OQ-3: Black-Box Proxy Signal Comparison for SIW Detection',
 
 # ── Plot 1: Crystallization curves all 3 strategies ──
 ax = axes[0, 0]
-ax.plot(ratios_A, 'b-',  lw=2.0, label=f'A: Top-K  (φ_c={phi_A:.3f})')
-ax.plot(ratios_B, 'g--', lw=2.0, label=f'B: SimProj (φ_c={phi_B:.3f})')
-ax.plot(ratios_C, 'r:',  lw=1.5, label=f'C: Random  (φ_c={phi_C:.3f})')
-for t, color in [(t_A, 'blue'), (t_B, 'green'), (t_C, 'red')]:
-    ax.axvline(t, color=color, ls=':', lw=1, alpha=0.5)
+ax.plot(ratios_A, '-',  lw=2.0, color='#5B8DB8', label=f'A: Top-K  (φ_c={phi_A:.3f})')
+ax.plot(ratios_B, '--', lw=2.0, color='#4E8E5A', label=f'B: SimProj (φ_c={phi_B:.3f})')
+ax.plot(ratios_C, ':',  lw=1.5, color='#B84848', label=f'C: Random  (φ_c={phi_C:.3f})')
+for t, color in [(t_A, '#5B8DB8'), (t_B, '#4E8E5A'), (t_C, '#B84848')]:
+    ax.axvline(t, color=color, ls=':', lw=1, alpha=0.4)
 ax.set_xlabel('Session t')
 ax.set_ylabel('|C_max| / |V|')
 ax.set_title('Crystallization: A vs B vs C')
-ax.legend(fontsize=9)
-ax.grid(True, alpha=0.3)
+# Legend at lower-right to avoid overlap with curves at early sessions
+ax.legend(fontsize=9, loc='lower right')
 
 # ── Plot 2: φ_c comparison bar ──
 ax = axes[0, 1]
 strategies = ['A: Top-K\n(semantic)', 'B: SimProj\n(projection)', 'C: Random\n(baseline)']
 phi_vals   = [phi_A, phi_B, phi_C]
 colors_s   = ['#2196F3', '#4CAF50', '#F44336']
-bars = ax.bar(strategies, phi_vals, color=colors_s, alpha=0.8, edgecolor='black')
+bars = ax.bar(strategies, phi_vals, color=colors_s, alpha=0.8, edgecolor='none')
 for bar, v in zip(bars, phi_vals):
     ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.002,
             f'{v:.3f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
@@ -301,20 +301,24 @@ ax.axhline(phi_A, color='blue', ls='--', lw=1, alpha=0.5, label='Strategy A (ref
 # ── Plot 3: Attack density ratio ──
 ax = axes[0, 2]
 ratios_plot = [ratio_A, ratio_B_val, ratio_C]
-bars = ax.bar(strategies, ratios_plot, color=colors_s, alpha=0.8, edgecolor='black')
-ax.axhline(1.5, color='grey', ls='--', lw=1.5, label='Detection threshold (1.5×)')
-ax.axhline(1.0, color='black', ls='-',  lw=1.0, alpha=0.3)
+bars = ax.bar(strategies, ratios_plot, color=colors_s, alpha=0.8, edgecolor='none')
+ax.axhline(1.5, color='#8A7E78', ls='--', lw=1.5, alpha=0.8)
+ax.axhline(1.0, color='#CCBFB5', ls='-', lw=1.0)
+ax.text(len(ratios_plot) - 0.08, 1.53,
+        'Detection threshold (1.5×)', ha='right', fontsize=8.5, color='#8A7E78')
+# Value labels — ensure ylim gives room above highest bar
+max_ratio = max(ratios_plot)
+ax.set_ylim(0, max_ratio * 1.35)
 for bar, v in zip(bars, ratios_plot):
-    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
+    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max_ratio * 0.03,
             f'{v:.2f}×', ha='center', va='bottom', fontsize=10, fontweight='bold')
 ax.set_ylabel('Attack / Benign cluster density ratio')
-ax.set_title('Attack Detectability: density ratio\n(>1.5× = detectable)')
-ax.legend(fontsize=9)
+ax.set_title('Attack Detectability\n(density ratio  >1.5× = detectable)')
 
 # ── Plot 4: t* comparison ──
 ax = axes[1, 0]
 t_vals = [t_A, t_B, t_C]
-bars = ax.bar(strategies, t_vals, color=colors_s, alpha=0.8, edgecolor='black')
+bars = ax.bar(strategies, t_vals, color=colors_s, alpha=0.8, edgecolor='none')
 for bar, v in zip(bars, t_vals):
     ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.3,
             str(v), ha='center', va='bottom', fontsize=10, fontweight='bold')
@@ -324,7 +328,7 @@ ax.set_title('T_c per Proxy Strategy\n(lower = faster detection)')
 # ── Plot 5: κ comparison ──
 ax = axes[1, 1]
 kappa_vals = [kappa_A, kappa_B, kappa_C]
-bars = ax.bar(strategies, kappa_vals, color=colors_s, alpha=0.8, edgecolor='black')
+bars = ax.bar(strategies, kappa_vals, color=colors_s, alpha=0.8, edgecolor='none')
 ax.axhline(1.0, color='grey', ls='--', lw=1.5, label='κ=1 (ER threshold)')
 for bar, v in zip(bars, kappa_vals):
     ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.1,

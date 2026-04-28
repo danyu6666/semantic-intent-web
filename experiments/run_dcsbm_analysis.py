@@ -366,7 +366,6 @@ ax.set_ylabel('κ (Molloy-Reed)', color='blue')
 ax.tick_params(axis='y', labelcolor='blue')
 ax.set_title('Topology Evolution: κ and R² over Time')
 ax.legend(loc='upper left', fontsize=8)
-ax.grid(True, alpha=0.3)
 
 # ── Plot 2: B matrix heatmap at G(t*) ──
 ax = axes[0, 1]
@@ -398,8 +397,7 @@ ax.semilogy(k_vals, np.maximum(poisson_pmf, 1e-3), 'k--', lw=1.5, alpha=0.6,
 ax.set_xlabel('Degree k')
 ax.set_ylabel('Count  (log scale)')
 ax.set_title('Degree Distribution at G(t*)\nOriginal vs DC-SBM vs Poisson')
-ax.legend(fontsize=8)
-ax.grid(True, alpha=0.3)
+ax.legend(fontsize=8, loc='upper right')
 
 # ── Plot 4: Hub vs non-hub degree at t* ──
 ax = axes[1, 0]
@@ -419,15 +417,20 @@ ax = axes[1, 1]
 labels = ['ER\n(1/n)', 'DC-SBM\n(both effects)', 'Empirical']
 vals   = [ER_PC, p_c_dcsbm, p_c_empirical]
 colors = ['steelblue', 'green', 'red']
-bars   = ax.bar(labels, vals, color=colors, alpha=0.75, edgecolor='black')
+bars   = ax.bar(labels, vals, color=colors, alpha=0.75, edgecolor='none')
+top    = max(vals)
 for bar, v, lbl in zip(bars, vals, ['ER', 'DC-SBM', 'Empirical']):
-    err = f"err={abs(v-p_c_empirical)/p_c_empirical*100:.1f}%" if lbl != 'Empirical' else ''
-    ax.text(bar.get_x() + bar.get_width() / 2,
-            bar.get_height() + 0.000005,
-            f'{v:.5f}\n{err}', ha='center', va='bottom', fontsize=8)
+    err = f"  err={abs(v-p_c_empirical)/p_c_empirical*100:.0f}%" if lbl != 'Empirical' else ''
+    # For near-zero bars: label to the side; for normal bars: label above
+    if v < top * 0.05:
+        ax.text(bar.get_x() + bar.get_width() / 2, top * 0.08,
+                f'{v:.5f}{err}', ha='center', va='bottom', fontsize=7.5, color='#2A2320')
+    else:
+        ax.text(bar.get_x() + bar.get_width() / 2, v + top * 0.02,
+                f'{v:.5f}{err}', ha='center', va='bottom', fontsize=8, fontweight='bold')
 ax.set_ylabel('p_c')
 ax.set_title('p_c Predictions vs Empirical')
-ax.set_ylim(0, max(vals) * 1.35)
+ax.set_ylim(0, top * 1.45)
 
 # ── Plot 6: Summary table ──
 ax = axes[1, 2]

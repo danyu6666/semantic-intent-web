@@ -267,32 +267,38 @@ fig.suptitle('OQ-5: Privacy-Utility Curve — SIW Two-Level Architecture',
 
 # ── Plot 1: ε_p vs TPR ──
 ax = axes[0]
-ax.semilogx(eps_values, tpr_L1,    'b-',  lw=2.5, label='Level 1 (local cluster)')
-ax.semilogx(eps_values, tpr_L2,    'r-',  lw=2.5, label='Level 2 (global |C_max|)')
-ax.semilogx(eps_values, tpr_bound, 'k--', lw=1.5, label='Lemma 2b upper bound')
-ax.axhline(0.9, color='grey', ls=':', lw=1.5, alpha=0.7, label='TPR=90% target')
-ax.axhline(0.7, color='grey', ls=':', lw=1.0, alpha=0.5)
-ax.fill_between(eps_values, tpr_L1, tpr_bound, alpha=0.08, color='blue')
-ax.set_xlabel('Privacy budget ε_p')
-ax.set_ylabel('True Positive Rate (Detection Rate)')
+ax.semilogx(eps_values, tpr_L1,    '-',  lw=2.5, color='#5B8DB8')
+ax.semilogx(eps_values, tpr_L2,    '-',  lw=2.5, color='#B84848')
+ax.semilogx(eps_values, tpr_bound, '--', lw=1.5, color='#2A2320', alpha=0.5)
+ax.fill_between(eps_values, tpr_L1, tpr_bound, alpha=0.07, color='#5B8DB8')
+ax.axhline(0.9, color='#8A7E78', ls=':', lw=1.5, alpha=0.8)
+# Labels directly on curves at right edge — no legend overlap
+ax.text(eps_values[-1] * 1.02, float(tpr_L1[-1]),
+        'Level 1', fontsize=9, color='#5B8DB8', va='center', clip_on=False)
+ax.text(eps_values[-1] * 1.02, float(tpr_L2[-1]),
+        'Level 2', fontsize=9, color='#B84848', va='center', clip_on=False)
+ax.text(eps_values[-1] * 1.02, float(tpr_bound[-1]) - 0.05,
+        'Lemma 2b\nbound', fontsize=8, color='#2A2320', va='center', clip_on=False)
+ax.text(eps_values[-1] * 0.85, 0.915, '90%', fontsize=8.5, color='#8A7E78', ha='right')
+ax.set_xlabel('Privacy budget  ε_p')
+ax.set_ylabel('Detection Rate (TPR)')
 ax.set_title('ε_p vs Detection Rate\n(FPR fixed at 5%)')
-ax.legend(fontsize=9)
 ax.set_xlim(eps_values[0], eps_values[-1])
-ax.set_ylim(0, 1.05)
-ax.grid(True, alpha=0.3)
+ax.set_ylim(-0.03, 1.08)
 
-# ── Plot 2: ε_p vs FPR (should be flat if threshold is correct) ──
+# ── Plot 2: ε_p vs FPR ──
 ax = axes[1]
-ax.semilogx(eps_values, fpr_L1, 'b-',  lw=2,   label='Level 1 FPR')
-ax.semilogx(eps_values, fpr_L2, 'r-',  lw=2,   label='Level 2 FPR')
-ax.axhline(ALPHA_FPR, color='black', ls='--', lw=1.5, label=f'Target FPR={ALPHA_FPR}')
-ax.set_xlabel('Privacy budget ε_p')
+ax.semilogx(eps_values, fpr_L1, '-', lw=2, color='#5B8DB8', label='Level 1 FPR')
+ax.semilogx(eps_values, fpr_L2, '-', lw=2, color='#B84848', label='Level 2 FPR')
+ax.axhline(ALPHA_FPR, color='#2A2320', ls='--', lw=1.5, alpha=0.7)
+ax.text(eps_values[-1] * 0.92, ALPHA_FPR + 0.008,
+        f'Target {ALPHA_FPR}', fontsize=8.5, color='#2A2320', ha='right')
+ax.set_xlabel('Privacy budget  ε_p')
 ax.set_ylabel('False Positive Rate')
-ax.set_title('ε_p vs FPR\n(FPR should be ≤ 5% by threshold design)')
-ax.legend(fontsize=9)
+ax.set_title('ε_p vs FPR\n(threshold designed at FPR ≤ 5%)')
+ax.legend(fontsize=9, loc='upper right')
 ax.set_xlim(eps_values[0], eps_values[-1])
-ax.set_ylim(0, 0.4)
-ax.grid(True, alpha=0.3)
+ax.set_ylim(0, 0.42)
 
 # ── Plot 3: Stat distributions (signal vs noise) ──
 ax = axes[2]

@@ -258,18 +258,25 @@ fig.suptitle('OQ-1: Analytical p_c Formula with Co-activation Threshold τ',
 ax = axes[0, 0]
 ax.plot(T_range, p_T_exact,  'b-', lw=2, label='Exact (Poisson CDF)')
 ax.plot(T_range, p_T_approx, 'r--', lw=1.5, label=f'Approx: T^τ Q_τ/τ!')
-ax.axvline(EMPIRICAL_T_STAR, color='green', ls='--', lw=2,
-           label=f't* = {EMPIRICAL_T_STAR} (empirical)')
-ax.axvline(T_c_formula, color='orange', ls=':', lw=2,
-           label=f'T_c = {T_c_formula:.1f} (formula)')
-ax.axhline(EMPIRICAL_PC, color='grey', ls=':', lw=1, alpha=0.6)
+ax.axvline(EMPIRICAL_T_STAR, color='#4E8E5A', ls='--', lw=1.8, alpha=0.85)
+ax.axvline(T_c_formula,     color='#C9853A', ls=':', lw=1.8, alpha=0.85)
+ax.axhline(EMPIRICAL_PC, color='#8A7E78', ls=':', lw=1, alpha=0.6)
+ymax = EMPIRICAL_PC * 3
+# Labels with white background box — placed BETWEEN the two lines, clearly offset
+ax.text(EMPIRICAL_T_STAR + 3, ymax * 0.88,
+        f't* = {EMPIRICAL_T_STAR}\n(empirical)', ha='left', fontsize=8.5,
+        color='#4E8E5A', fontweight='bold',
+        bbox=dict(facecolor='#F2EDE7', edgecolor='none', pad=2))
+ax.text(T_c_formula - 3, ymax * 0.65,
+        f'T_c = {T_c_formula:.1f}\n(formula)', ha='right', fontsize=8.5,
+        color='#C9853A', fontweight='bold',
+        bbox=dict(facecolor='#F2EDE7', edgecolor='none', pad=2))
 ax.set_xlabel('Session T')
 ax.set_ylabel('Mean edge density p(T)')
 ax.set_title('Edge Density Growth: Exact vs Approximation')
-ax.legend(fontsize=8)
+ax.legend(fontsize=8.5, loc='upper left')
 ax.set_xlim(0, 80)
-ax.set_ylim(0, EMPIRICAL_PC * 3)
-ax.grid(True, alpha=0.3)
+ax.set_ylim(0, ymax)
 
 # ── Plot 2: q_ij distribution by pair type ──
 ax = axes[0, 1]
@@ -299,44 +306,44 @@ ax.axvline(np.log(EMPIRICAL_T_STAR), color='green', ls='--', lw=1.5,
 ax.set_xlabel('log T')
 ax.set_ylabel('log p(T)')
 ax.set_title(f'Power-law: p(T) ∝ T^τ  (τ={TAU})')
-ax.legend(fontsize=8)
-ax.grid(True, alpha=0.3)
+ax.legend(fontsize=8, loc='upper left')
 
-# ── Plot 4: p_c formula summary ──
+# ── Plot 4: p_c formula summary — split into clean rows ──
 ax = axes[1, 1]
 ax.axis('off')
-summary = f"""
-ANALYTICAL RESULT
+ax.set_facecolor('#F2EDE7')
 
-q_ij = (1/K) Σ_c p_i(c) × p_j(c)
-     within-cluster:  {np.mean(q_within):.5f}
-     cross-cluster:   {np.mean(q_cross):.5f}
-     q_in/q_out:      {ratio:.2f}×
+# Key formula at top (large)
+ax.text(0.5, 0.97,
+        r'$T_c = \left(\frac{\tau!}{(N-1)\,Q_\tau}\right)^{1/\tau}$',
+        transform=ax.transAxes, fontsize=14, ha='center', va='top', color='#2A2320')
 
-Q_τ = E[q_ij^τ] = {Q_tau:.2e}
+ax.text(0.5, 0.80,
+        r'$p_c \approx \frac{T_c^\tau\, Q_\tau}{\tau!} \approx \frac{1}{N-1}$',
+        transform=ax.transAxes, fontsize=14, ha='center', va='top', color='#2A2320')
 
-T_c = (τ! / ((N-1) × Q_τ))^{{1/τ}}
-    = ({int(special.factorial(TAU))} / ({N-1} × {Q_tau:.1e}))^{{1/{TAU}}}
-    = {T_c_formula:.2f}  sessions
-    (empirical t* = {EMPIRICAL_T_STAR})
+# Results table as structured text (wider spacing)
+rows = [
+    ('q_in / q_out',      f'{ratio:.2f}×'),
+    ('Q_τ = E[q^τ]',      f'{Q_tau:.2e}'),
+    ('T_c (formula)',      f'{T_c_formula:.1f} sessions'),
+    ('T_c (empirical)',    f'{EMPIRICAL_T_STAR} sessions'),
+    ('p_c (formula)',      f'{p_c_formula:.5f}'),
+    ('p_c (empirical)',    f'{EMPIRICAL_PC:.5f}'),
+    ('τ amplification',   f'(q_in/q_out)^τ = {ratio**TAU:.0f}×'),
+]
+y0 = 0.62
+dy = 0.085
+for label, value in rows:
+    ax.text(0.05, y0, label, transform=ax.transAxes, fontsize=9.5,
+            color='#8A7E78', va='top', ha='left')
+    ax.text(0.95, y0, value, transform=ax.transAxes, fontsize=9.5,
+            color='#2A2320', va='top', ha='right', fontweight='bold')
+    ax.plot([0.02, 0.98], [y0 - dy * 0.05, y0 - dy * 0.05],
+            color='#CCBFB5', lw=0.5, transform=ax.transAxes, clip_on=False)
+    y0 -= dy
 
-p_c ≈ T_c^τ × Q_τ / τ! = 1/(N-1)
-    = {p_c_formula:.6f}
-    (empirical = {EMPIRICAL_PC:.6f})
-    (ER = {1/N:.6f})
-
-τ effect on T_c:
-  τ=1: T_c ≈ {(1/((N-1)*np.mean(q_values)))**1:.1f} sessions
-  τ=2: T_c ≈ {(2/((N-1)*np.mean(q_values**2)))**0.5:.1f} sessions
-  τ=3: T_c ≈ {T_c_formula:.1f} sessions  ← current
-  τ=5: T_c ≈ {(special.factorial(5)/((N-1)*np.mean(q_values**5)))**0.2:.1f} sessions
-
-τ amplifies community sep: (q_in/q_out)^τ = {ratio**TAU:.0f}×
-"""
-ax.text(0.05, 0.95, summary, transform=ax.transAxes,
-        fontsize=9, verticalalignment='top', fontfamily='monospace',
-        bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
-ax.set_title('Formula Summary', pad=10)
+ax.set_title('Analytical Result', pad=10, fontsize=11)
 
 plt.tight_layout()
 import os

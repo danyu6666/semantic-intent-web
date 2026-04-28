@@ -253,35 +253,44 @@ for (domain, res), color in zip(results.items(), colors):
 ax.set_xlabel('Session t')
 ax.set_ylabel('|C_max| / |V|')
 ax.set_title('Crystallization Curves by Domain')
-ax.legend(fontsize=8)
-ax.grid(True, alpha=0.3)
+ax.legend(fontsize=8, loc='lower right')
 
 # ── Plot 2: φ_c per domain bar ──
 ax = axes[0, 1]
 domains_list = list(results.keys())
 phi_list     = [results[d]['phi_c'] for d in domains_list]
-bars = ax.bar(domains_list, phi_list, color=colors, alpha=0.8, edgecolor='black')
-ax.axhline(np.mean(phi_list), color='black', ls='--', lw=1.5, label=f'Mean={np.mean(phi_list):.3f}')
-ax.axhline(0.242, color='grey', ls=':', lw=1.5, label='Synthetic sim=0.242')
+bars = ax.bar(domains_list, phi_list, color=colors, alpha=0.8, edgecolor='none')
+mean_phi = np.mean(phi_list)
+ax.axhline(mean_phi, color='#2A2320', ls='--', lw=1.5, alpha=0.7)
+ax.axhline(0.242,    color='#8A7E78', ls=':', lw=1.5, alpha=0.7)
+# Labels as text on the right side — no legend needed
+ax.text(len(phi_list) - 0.1, mean_phi + 0.006, f'Mean={mean_phi:.3f}',
+        ha='right', fontsize=8, color='#2A2320')
+ax.text(len(phi_list) - 0.1, 0.242 + 0.006, 'Synthetic=0.242',
+        ha='right', fontsize=8, color='#8A7E78')
 for bar, v in zip(bars, phi_list):
     ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.005,
-            f'{v:.3f}', ha='center', va='bottom', fontsize=9)
+            f'{v:.3f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
 ax.set_ylabel('φ_c')
 ax.set_title('φ_c per Domain')
-ax.legend(fontsize=8)
-ax.tick_params(axis='x', rotation=20)
+ax.tick_params(axis='x', rotation=25)
+ax.set_xticklabels(domains_list, ha='right')
 
 # ── Plot 3: p_c per domain vs ER ──
 ax = axes[0, 2]
 pc_list = [results[d]['p_c'] for d in domains_list]
-ax.bar(domains_list, pc_list, color=colors, alpha=0.8, edgecolor='black')
-ax.axhline(1/EMB_DIM, color='red', ls='--', lw=1.5, label=f'ER 1/N={1/EMB_DIM:.5f}')
-ax.axhline(np.mean(pc_list), color='black', ls='-', lw=1.5,
-           label=f'Mean={np.mean(pc_list):.5f}')
+ax.bar(domains_list, pc_list, color=colors, alpha=0.8, edgecolor='none')
+er_line = 1/EMB_DIM
+ax.axhline(er_line,           color='#B84848', ls='--', lw=1.5, alpha=0.8)
+ax.axhline(np.mean(pc_list),  color='#2A2320', ls='-',  lw=1.5, alpha=0.7)
+ax.text(len(pc_list) - 0.1, er_line + 0.00015,
+        f'ER 1/N={er_line:.5f}', ha='right', fontsize=8, color='#B84848')
+ax.text(len(pc_list) - 0.1, np.mean(pc_list) + 0.00015,
+        f'Mean={np.mean(pc_list):.5f}', ha='right', fontsize=8, color='#2A2320')
 ax.set_ylabel('p_c')
 ax.set_title('Empirical p_c per Domain vs ER')
-ax.legend(fontsize=8)
-ax.tick_params(axis='x', rotation=20)
+ax.tick_params(axis='x', rotation=25)
+ax.set_xticklabels(domains_list, ha='right')
 
 # ── Plot 4: κ vs φ_c scatter ──
 ax = axes[1, 0]
@@ -293,21 +302,22 @@ for d, kap, phi, color in zip(domains_list, kappa_list, phi_list, colors):
 ax.set_xlabel('Molloy-Reed κ at G(t*)')
 ax.set_ylabel('φ_c')
 ax.set_title('κ vs φ_c by Domain')
-ax.grid(True, alpha=0.3)
 
 # ── Plot 5: t* per domain (WHEN transition happens) ──
 ax = axes[1, 1]
 tstar_list = [results[d]['t_star'] for d in domains_list]
-bars = ax.bar(domains_list, tstar_list, color=colors, alpha=0.8, edgecolor='black')
-ax.axhline(np.mean(tstar_list), color='black', ls='--', lw=1.5,
-           label=f'Mean t*={np.mean(tstar_list):.0f}')
+bars = ax.bar(domains_list, tstar_list, color=colors, alpha=0.8, edgecolor='none')
+mean_ts = np.mean(tstar_list)
+ax.axhline(mean_ts, color='#2A2320', ls='--', lw=1.5, alpha=0.7)
+ax.text(len(tstar_list) - 0.1, mean_ts + 0.6,
+        f'Mean={mean_ts:.0f}', ha='right', fontsize=8, color='#2A2320')
 for bar, v in zip(bars, tstar_list):
     ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
-            str(v), ha='center', va='bottom', fontsize=9)
+            str(v), ha='center', va='bottom', fontsize=9, fontweight='bold')
 ax.set_ylabel('t* (session at transition)')
-ax.set_title('T_c per Domain (session count)\nτ-invariance: φ_c stable, T_c varies')
-ax.legend(fontsize=8)
-ax.tick_params(axis='x', rotation=20)
+ax.set_title('T_c per Domain\nτ-invariance: φ_c stable, T_c varies')
+ax.tick_params(axis='x', rotation=25)
+ax.set_xticklabels(domains_list, ha='right')
 
 # ── Plot 6: summary table ──
 ax = axes[1, 2]

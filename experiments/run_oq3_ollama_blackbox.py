@@ -238,25 +238,35 @@ fig.suptitle('OQ-3 (完整): 真正黑箱 — Ollama Response Embedding vs Input
 
 # ── Plot 1: Crystallization curves ──
 ax = axes[0, 0]
-ax.plot(ratios_A, 'b-',  lw=2, label=f'A: Input emb  (φ_c={phi_A:.3f})')
-ax.plot(ratios_D, 'g--', lw=2, label=f'D: Response emb (φ_c={phi_D:.3f})')
-ax.axvline(t_A, color='blue',  ls=':', lw=1.5, alpha=0.7, label=f'T_c(A)={t_A}')
-ax.axvline(t_D, color='green', ls=':', lw=1.5, alpha=0.7, label=f'T_c(D)={t_D}')
+ax.plot(ratios_A, '-',  lw=2, color='#5B8DB8')
+ax.plot(ratios_D, '--', lw=2, color='#4E8E5A')
+# T_c lines — staggered labels to avoid overlap
+ax.axvline(t_A, color='#5B8DB8', ls=':', lw=1.5, alpha=0.8)
+ax.axvline(t_D, color='#4E8E5A', ls=':', lw=1.5, alpha=0.8)
+ymax = max(max(ratios_A), max(ratios_D)) * 1.05
+ax.text(t_A, ymax * 0.92, f'T_c={t_A}\n(input)', ha='center', fontsize=8,
+        color='#5B8DB8', va='top')
+ax.text(t_D, ymax * 0.72, f'T_c={t_D}\n(response)', ha='center', fontsize=8,
+        color='#4E8E5A', va='top')
+# Curve labels at right end
+n = len(ratios_A)
+ax.text(n - 1, float(ratios_A[-1]) + 0.02,
+        f'Input (φ_c={phi_A:.3f})', ha='right', fontsize=8.5, color='#5B8DB8')
+ax.text(n - 1, float(ratios_D[-1]) - 0.04,
+        f'Response (φ_c={phi_D:.3f})', ha='right', fontsize=8.5, color='#4E8E5A')
 ax.set_xlabel('Session t')
 ax.set_ylabel('|C_max| / |V|')
 ax.set_title('Crystallization: Input vs Response Embedding')
-ax.legend(fontsize=9)
-ax.grid(True, alpha=0.3)
 
 # ── Plot 2: φ_c and attack ratio comparison ──
 ax = axes[0, 1]
 x  = np.array([0, 1])
 w  = 0.35
 b1 = ax.bar(x - w/2, [phi_A, phi_D], w, label='φ_c', color=['#2196F3', '#4CAF50'],
-            alpha=0.8, edgecolor='black')
+            alpha=0.8, edgecolor='none')
 ax2b = ax.twinx()
 b2 = ax2b.bar(x + w/2, [ratio_A, ratio_D], w, label='Attack ratio',
-              color=['#2196F3', '#4CAF50'], alpha=0.4, hatch='//', edgecolor='black')
+              color=['#2196F3', '#4CAF50'], alpha=0.4, hatch='//', edgecolor='none')
 ax2b.axhline(1.5, color='red', ls='--', lw=1.5, label='Detect threshold 1.5×')
 ax.set_xticks(x)
 ax.set_xticklabels(['A: Input emb\n(reference)', 'D: Response emb\n(black-box)'])
@@ -272,7 +282,7 @@ ax = axes[1, 0]
 categories = ['Within\nattack', 'Within\nbenign', 'Attack vs\nbenign']
 values     = [sim_within_att, sim_within_ben, sim_cross]
 colors_    = ['red', 'blue', 'grey']
-bars = ax.bar(categories, values, color=colors_, alpha=0.75, edgecolor='black')
+bars = ax.bar(categories, values, color=colors_, alpha=0.75, edgecolor='none')
 for bar, v in zip(bars, values):
     ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.005,
             f'{v:.3f}', ha='center', va='bottom', fontsize=10)
