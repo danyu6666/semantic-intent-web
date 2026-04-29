@@ -218,7 +218,6 @@ python experiments/run_oq3_ollama_blackbox.py
 | [`proofs.md`](proofs.md) | Formal proofs: Lemma 1–3, SIW Trilemma, Theorem 3' (DC-SBM) |
 | [`adversary.md`](adversary.md) | Adversary model: composition theorem, fragmentation bounds, honest boundary |
 | [`open_questions.md`](open_questions.md) | Open problems with experimental findings (OQ-1 through OQ-10) |
-| [`paper/introduction.md`](paper/introduction.md) | Paper introduction draft |
 | `simulation/` | Synthetic percolation simulation and figures |
 | `experiments/` | 9 experiments covering OQ-1 through OQ-6 |
 
@@ -229,7 +228,7 @@ python experiments/run_oq3_ollama_blackbox.py
 ```
 Theory          ██████████ complete (v0.9)
 Experiments     ████████░░ 6/10 OQs addressed
-Paper draft     ███░░░░░░░ introduction written, full paper in preparation
+Full paper      ░░░░░░░░░░ in preparation
 Real LLM data   ░░░░░░░░░░ future work (SAE activations)
 ```
 
@@ -239,12 +238,12 @@ Real LLM data   ░░░░░░░░░░ future work (SAE activations)
 
 ```bibtex
 @misc{siw2026,
-  title   = {Semantic Intent Web: A Percolation Framework for
-             Cross-Session LLM Safety},
-  year    = {2026},
-  note    = {Preprint. Full paper in preparation.},
-  url     = {https://github.com/danyu6666/SIW},
-  contact = {aa.prime.studio@gmail.com}
+  author       = {Chang, Danyu},
+  title        = {{Semantic Intent Web: A Percolation Framework for
+                   Cross-Session LLM Safety}},
+  year         = {2026},
+  howpublished = {\url{https://github.com/danyu6666/SIW}},
+  note         = {Contact: aa.prime.studio@gmail.com}
 }
 ```
 
