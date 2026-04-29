@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/siw_banner.png" alt="Semantic Intent Web — Cross-session semantic percolation in LLM safety" width="100%">
+</div>
+
 # Semantic Intent Web (SIW)
 
 [![Version](https://img.shields.io/badge/version-v0.9-blue?style=flat-square)](https://github.com/danyu6666/SIW)
