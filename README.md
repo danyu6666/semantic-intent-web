@@ -1,11 +1,10 @@
-# Semantic Intent Web (SIW)
+# Cross-Session LLM Attack Detection via Semantic Graph Percolation
 
 [![Version](https://img.shields.io/badge/version-v0.9-blue?style=flat-square)](https://github.com/danyu6666/SIW)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey?style=flat-square)](https://creativecommons.org/licenses/by/4.0/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-brightgreen?style=flat-square)](https://www.python.org/)
 
-**A formal framework for detecting distributed attacks on Large Language Models
-through semantic graph phase transitions.**
+**Semantic Intent Web (SIW)** detects distributed LLM attacks that evade per-request safety filters — by modeling intent as an accumulating semantic graph and detecting when it undergoes a phase transition.
 
 ---
 
