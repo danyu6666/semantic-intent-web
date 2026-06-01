@@ -222,14 +222,30 @@ python experiments/run_oq3_ollama_blackbox.py
 
 ---
 
-## Status
+## Open Questions
 
-```
-Theory          ██████████ complete (v0.9)
-Experiments     ████████░░ 6/10 OQs addressed
-Full paper      ░░░░░░░░░░ in preparation
-Real LLM data   ░░░░░░░░░░ future work (SAE activations)
-```
+Visual answers to OQ-1 through OQ-10. For full derivations, tables, and
+honest limits, see [`open_questions.md`](open_questions.md).
+
+![OQ-1 / Topology](experiments/figure_oq1_explainer.png)
+
+![OQ-2 / Calibration](experiments/figure_oq2_explainer.png)
+
+![OQ-3 / Black-box proxy](experiments/figure_oq3_explainer.png)
+
+![OQ-4 / Fragmentation](experiments/figure_oq4_explainer.png)
+
+![OQ-5 / Privacy budget](experiments/figure_oq5_explainer.png)
+
+![OQ-6 / Lemma 3](experiments/figure_oq6_explainer.png)
+
+![OQ-7 / Multimodal](experiments/figure_oq7_explainer.png)
+
+![OQ-8 / Adaptive adversary](experiments/figure_oq8_explainer.png)
+
+![OQ-9 / Purpose binding](experiments/figure_oq9_explainer.png)
+
+![OQ-10 / Baseline](experiments/figure_oq10_explainer.png)
 
 ---
 
