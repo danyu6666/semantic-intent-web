@@ -58,12 +58,34 @@ p_c (formula)  = 0.002004        (empirical = 0.002196, error 8.7%)
 τ amplifies community separation (q_in/q_out = 2.15× → Q_τ ratio = 9.5×):
 larger τ makes community structure more detectable earlier.
 
-**Remaining:** exact correction for ≈8% residual (discrete threshold
-effects, session-order shuffling). See `open_questions.md` OQ-6 (Lemma 3)
-for analogous refinement pattern.
+**Residual ≈8% — characterised (see `experiments/run_oq1_residual.py`).**
+A deterministic per-pair analysis shows the gap is NOT a single missing term. The
+DC-SBM hub heterogeneity splits "the transition" into a window:
+
+```
+  Molloy-Reed onset   ⟨k²⟩/⟨k⟩ = 2     T ≈ 20.3   (giant first possible)
+  leading-order       ⟨k⟩_approx = 1   T ≈ 24.1
+  empirical t*        steepest jump    T = 26     [anchor]
+  exact-Poisson       ⟨k⟩ = 1          T ≈ 28.9
+  → transition window width ≈ 8.6 sessions (33% of t*)
+```
+
+Both the leading-order formula (24.1) and t* (26) fall inside the window. The
+leading-order term lands near t* partly by cancellation: it over-counts hub pairs
+(+66% in ⟨k⟩ at t*, pulling T_c down) while truncating higher-order Poisson terms
+(pulling it up). Separately, the empirical anchor is attack-accelerated
+(⟨k⟩≈1.10 at t* vs benign-only exact ⟨k⟩≈0.76; +0.33 is extra attack density, not
+formula error).
+
+**Conclusion:** the τ-formula is accurate to within the intrinsic transition-window
+width. The residual is not reducible by a universal closed-form correction — it is
+set by which point in the window one calls "the" threshold, plus a
+deployment-specific attack-density offset. (Characterised, not "closed" — consistent
+with the project's honest-boundary stance.)
 
 **OQ-2: φ_c Calibration**  
-*(Partially addressed — see `experiments/run_oq2_phi_calibration.py`)*
+*(Addressed — domain, architecture, and language — see `experiments/run_oq2_phi_calibration.py`,
+`run_oq2_crossmodel.py`, `run_oq2_crosslang.py`)*
 
 Experiment: sentence-transformer (all-MiniLM-L6-v2), 5 domains × 120 sessions,
 COACT_THRESHOLD = 3, top-15 embedding dimensions as features.
@@ -100,18 +122,39 @@ Mistral crystallises at T_c=1–5 with very low φ_c: a few dominant embedding
 dimensions activate for all prompts, producing rapid but shallow crystallisation.
 Domain ordering is NOT preserved across models.
 
+**Cross-language calibration (see `experiments/run_oq2_crosslang.py`).**
+One multilingual model (paraphrase-multilingual-MiniLM-L12-v2) embeds identical,
+hand-translated content in 5 languages (English, 中文, Español, Français, Deutsch)
+across a neutral (Cooking) and a sensitive-adjacent (Chemistry) domain.
+
+```
+φ_c CV across languages = 0.26   (mean over both domains)
+  vs domain CV          = 0.47
+  vs architecture gap   = 67.6%
+
+Cross-lingual top-K Jaccard (same meaning) = 0.36–0.46   vs chance 0.07
+Mixed-language stream φ_c ≈ mono-language mean (preserved, one detector works)
+```
+
+Language is the SMALLEST calibration axis: a shared multilingual embedding maps the
+same meaning to overlapping features regardless of language, so the co-activation
+graph is largely language-invariant and a single detector serves all five
+languages without fragmentation. But CV=0.26 is a real ~26% residual (Spanish/French
+crystallise later than English/German/Chinese here) — broadly shared, **not fully
+universal**, so light per-language calibration can still help. The near-invariance
+is a property of cross-lingual embedding alignment, not of SIW; a monolingual or
+poorly-aligned model would fragment by language.
+
 **Complete OQ-2 answer:**
 ```
-φ_c depends on:        calibration needed?
-  Domain          ✅  YES (CV=0.47, range 0.039–0.219)
-  Architecture    ✅  YES (67.6% gap, ST vs mistral)
-  Language        —   Not tested
+φ_c depends on:        calibration burden?
+  Architecture    ✅  YES, most  (67.6% gap, ST vs mistral)
+  Domain          ✅  YES        (CV=0.47, range 0.039–0.219)
+  Language        △   LEAST      (CV=0.26, shared multilingual geometry)
 ```
 
-φ_c is neither domain-universal nor architecture-universal.
-Per-deployment calibration is mandatory.
-
-**Remaining:** Cross-language calibration.
+φ_c is neither domain- nor architecture-universal; per-deployment calibration is
+mandatory. Language is the least demanding axis, but not zero.
 
 **OQ-3: Black-box Feature Proxy**  
 *(Partially addressed — see `experiments/run_oq3_proxy_signals.py`)*
@@ -162,8 +205,28 @@ Implication: for response-only proxy, direct cosine clustering of response
 embeddings may outperform SIW graph-based detection. The graph approach
 requires more sessions (>200) or lower τ to reliably recover the signal.
 
-**Remaining:** Quantify the exact threshold (min sessions, max τ) at which
-response-embedding SIW detection becomes reliable (>1.5× density ratio).
+**Reliability threshold quantified (see `experiments/run_oq3_threshold.py`).**
+Sweeping a cached pool of real Ollama (mistral) responses over sessions × τ:
+
+```
+attack density ratio (mean, 25 seeds)   n=50   100   150   200   300
+  τ = 1                                  1.66  1.47  1.42  1.38  1.38
+  τ = 2                                  1.12  1.22  1.18  1.23  1.29
+  τ = 3                                  0.79  0.95  1.00  1.06  1.17
+continuous cosine clustering (ceiling)   3.98×    |   reliable bar = 1.5×
+```
+
+Response-only SIW graph detection clears 1.5× **only at τ=1, and only with few
+sessions** (~50): at τ=1 the contrast is strongest early and *erodes* as the
+benign background also saturates. For τ ≥ 2 the ratio rises with sessions but
+never reaches 1.5× within 300. The continuous response embedding carries the
+signal at 3.98×, so the graph discretisation (top-K + τ threshold) throws most of
+it away — the τ threshold, not the embedding, is the bottleneck.
+
+**Recommendation:** for a response-only proxy, detect on the continuous cosine
+clustering directly (3.98×) rather than the discretised SIW graph; if the graph
+must be used, set τ=1 and a short window. OQ-3 reliability is now characterised
+across sessions × τ.
 
 **OQ-4: Adversarial Topology** *(Addressed — see `adversary.md`)*  
 Fragmentation analysis complete: attacks with semantic interaction complexity
@@ -235,21 +298,164 @@ General Ω(|V|) bound is now TIGHT for DC-SBM.
 Lemma 3 confidence: Medium → High.
 
 **OQ-7: Multi-modal Extension**  
-SIW is defined for text features. How does the framework extend to
-vision-language models where features span modalities?
+*(Addressed — see `experiments/run_oq7_multimodal.py`)*
+
+The multimodal case is a **two-block DC-SBM**: modality A (e.g. text) and
+modality B (e.g. vision) each carry the concept clusters, joined by cross-modal
+co-activation edges. A concept k exists in both modalities (clusters a_k, b_k);
+benign users mostly work within one modality, a multimodal attacker binds the two.
+
+**Multimodal analog of Lemma 1 (demonstrated):**
+```
+Stealthy operating point (within-modality leakage λ=0):
+  Unimodal-A detector  z_A     = 1.1   < 2  → MISS
+  Unimodal-B detector  z_B     = -0.5  < 2  → MISS
+  Joint cross-modal    z_cross = 9.7   ≫ 2  → CATCH
+
+Cross-block density matrix:
+  attacked cell C[k*,k*] = 0.098  vs off-attacked mean = 0.001  (98×)
+```
+
+**Key findings:**
+1. An attacker that binds a fixed A/B feature set across modalities while keeping
+   each modality's within-cluster density at the benign level is **invisible to
+   per-modality monitoring** yet glaring in the joint graph.
+2. **Blindness frontier:** the joint signal stays above threshold for every
+   leakage λ; per-modality detection only catches the careless attacker (λ ≳ 0.15,
+   z grows 1.1 → 8.1). A whole regime of cross-modal-only-detectable attacks exists.
+3. The **phase transition carries over**: the cross-modal block crystallises for
+   the attacked concept (percolation in the bipartite block) while benign concepts
+   stay flat.
+
+**Why:** just as per-REQUEST safety misses cross-SESSION intent (Lemma 1),
+per-MODALITY safety misses cross-MODAL intent. The defensive primitive is identical
+— monitor the joint co-activation graph, not the modality marginals. SIW extends to
+VLMs through this joint graph.
+
+**Remaining:** real VLM features (SAE / patch-token activations) rather than the
+two-block abstraction; and >2 modalities (audio/video) as a K-block graph.
 
 **OQ-8: Graph Model for Adversarial Settings**  
-The percolation model assumes a static adversary. What is the right
-dynamic graph model when the adversary adapts to the detection system?
+*(Addressed — see `experiments/run_oq8_adaptive_adversary.py`)*
+
+The right dynamic model is a **DC-SBM percolation with an adversary-controlled
+co-activation rate q(t)**. An adaptive adversary tunes q within its target via
+three open-loop knobs; each was swept (means over 4 seeds), measuring both the
+detector signal (attacked-cluster density z-score vs the time-matched null of the
+other clusters) and the adversary's own cost. Detection is measured in the early
+sub-critical window, never at the saturated end state.
+
+```
+Knob          Detector signal              Adversary cost
+Camouflage    T_detect 12→18 (unchanged)   T_complete 210→296 sessions, 3.3× total
+  (c=0→0.7)   stays << T_complete          dilution only buys latency, not evasion
+Spread M      z_peak 40→10 (still > 2)     composition edges 0→6593 (I(G)>0)
+  (M=1→6)     Level 1 → Level 2 trade      goal must still be reassembled
+Boost β       z@budget 13→33               coherence 0.30→0.99 (same knob)
+  (1.0→2.5)   even β=1.0 detected          concentration, not intensity, is signal
+```
+
+**Key findings:**
+1. **Camouflage** (benign decoy dilution) does not hide a *relative* density
+   anomaly — T_detect stays well below the goal-delivery time T_complete. It only
+   inflates the adversary's session cost (3.3×); detection still fires first.
+2. **Spread** the goal across M clusters lowers each cluster's local signal but
+   manufactures exactly the cross-cluster composition edges (I(G) > 0) that
+   `adversary.md` proves are unavoidable for a goal that must be reassembled.
+   Level 1 detection trades into Level 2 — it does not disappear (z_peak=9.7 > 2
+   even at M=6).
+3. **Boost** (per-session intensity) barely helps: even β=1.0 (benign intensity)
+   is detected because *concentration* of sessions on a target — not per-session
+   intensity — is the signal. Coherence and detectability rise together.
+4. **Evasion frontier:** across the boost×spread grid,
+   corr(detectability z_peak, goal coherence) = **+0.98**. The region
+   {low detectability ∧ high coherence} is empirically empty.
+
+**Why:** the detector statistic and the attack's utility are both monotone in the
+same quantity — the attacker's concentrated co-activation rate q. The only
+undetectable operating point is q → benign, where T_c → ∞ and the goal never
+assembles. This is the simulation form of the evasion-cost bound in `adversary.md`.
+
+**Remaining:** a *closed-loop* adversary that estimates the deployment's calibrated
+φ_c online and servo-controls q to ride just under threshold, vs the open-loop
+knobs swept here.
 
 ## Ethical / Governance
 
 **OQ-9: Purpose Binding Implementation**  
-How do you technically enforce purpose binding beyond policy statements?
-Cryptographic commitments? Trusted execution environments?
+*(Addressed — see `experiments/run_oq9_purpose_binding.py`)*
+
+Purpose binding is enforceable cryptographically, not just by policy. A working
+stdlib protocol (PB-SIW) implements four mechanisms, one per trilemma tension, and
+the tested misuse paths are all blocked:
+
+```
+mechanism              guarantee                                misuse path → outcome
+purpose commitment     binds to one declared purpose+computation  repurpose → commit mismatch ✗
+purpose-bound key      K=HKDF(purpose); other purposes can't open  repurpose → seal won't open ✗
+hash-chain audit       editing any access changes the head         tamper   → head changes ✗ (detected)
+k-of-n quorum (Shamir) Level-2 activation needs k of n guardians   2-of-5   → cannot reconstruct ✗
+```
+
+```
+Enforcement matrix (✓ = passes):     commit  quorum  opens  audit   → result
+  Honest (committed use)               ✓      ✓      ✓     ✓     ACCESS (committed use only)
+  Repurpose (profiling)                ✗      ✓      ✗     ✓     BLOCKED
+  Tamper (edit audit log)              ✓      ✓      ✓     ✗     DETECTED
+  Sub-quorum (2 of 5 collude)          ✓      ✗      ✗     ✓     BLOCKED
+quorum reconstruct-success by #shares = [0,0,1,1,1]  (recovers only at ≥3 of 5)
+```
+
+The k-of-n quorum **decentralizes the activation** of the centralized Level-2
+computation — a direct, partial answer to the trilemma's decentralization tension.
+A **TEE** (SGX/TDX/SEV) is the hardware analogue: an enclave attests the same
+commitment and runs the sealed computation.
+
+**Honest boundary:** crypto binds what the aggregator may *do* with collected state,
+not whether it may *collect* it. The privacy cost of cross-session monitoring
+(Lemma 2b) is unchanged — purpose binding is a governance guarantee layered on SIW,
+not an escape from the trilemma.
 
 **OQ-10: Baseline Definition**  
-Who defines "normal" semantic behavior, and how do you prevent the
-baseline from encoding existing societal biases about what constitutes
-suspicious curiosity?
+*(Addressed — see `experiments/run_oq10_baseline_bias.py`)*
+
+Who defines "normal", and how do you stop the baseline encoding societal biases
+about whose curiosity is suspicious? Quantified over 80 users/group, scoring each
+user's own co-activation graph by two signals: S_density (max cluster density,
+raw concentration) and S_span (#clusters spanned by the giant component,
+composition / assembly).
+
+```
+Under a majority-calibrated threshold        S_density flags   S_span flags
+  majority (shallow)                                4%              1%
+  expert, off-domain (legit deep curiosity)       100%             25%
+  expert, sensitive domain (researcher)           100%             10%
+  attacker, stealth (mimics the expert)           100%             10%
+  attacker, overt (boost + composition)           100%             99%
+
+Separability (AUC vs benign sensitive-domain expert):
+  overt attacker   : density 1.00,  span 0.95   (separable)
+  stealth attacker : density 0.50,  span 0.50   (indistinguishable)
+```
+
+**Key findings:**
+1. **Disparate impact is real and large.** A density baseline calibrated on a
+   shallow majority flags *both* expert groups at ~100% FPR (vs 4% majority) —
+   fairness gap +96%. Under this baseline, focused curiosity ≈ guilt.
+2. **Use the detectable signal, not depth.** The composition signal S_span — the
+   signature `adversary.md` proves is unavoidable for a reassembled goal —
+   separates the overt attacker (AUC 0.95) while sparing experts (expert_on
+   flagged 10% vs 1% majority, gap shrinks +96% → +9%). Detecting on *assembly*
+   rather than *depth* de-biases.
+3. **Irreducible residue.** A stealth attacker who mimics legitimate deep
+   curiosity is at chance vs a benign expert on *both* signals (AUC 0.50). No
+   graph-structural test separates them; doing so requires labelling the sensitive
+   *domain* itself as suspicious — the value-laden step where bias enters, and the
+   I(G)=0 honest boundary of `adversary.md`.
+
+**Answer:** the baseline is a governance artifact, not a statistic. SIW can be
+made fair against the detectable (composition) class, but the curiosity-vs-malice
+residue inside a single domain is a policy decision that graph structure cannot —
+and should not pretend to — resolve. OQ-10 is characterised, not "solved": it is
+partly a value judgment by construction.
 

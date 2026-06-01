@@ -218,7 +218,7 @@ python experiments/run_oq3_ollama_blackbox.py
 | [`adversary.md`](adversary.md) | Adversary model: composition theorem, fragmentation bounds, honest boundary |
 | [`open_questions.md`](open_questions.md) | Open problems with experimental findings (OQ-1 through OQ-10) |
 | `simulation/` | Synthetic percolation simulation and figures |
-| `experiments/` | 9 experiments covering OQ-1 through OQ-6 |
+| `experiments/` | Experiments covering all open questions OQ-1 through OQ-10 |
 
 ---
 
